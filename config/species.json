@@ -1,0 +1,62 @@
+   [
+     {
+       "taxon_id": 13094,
+       "scientific_name": "Erithacus rubecula",
+       "common_name_fr": "Rouge-gorge familier",
+       "folder": "erithacus_rubecula"
+     },
+     {
+       "taxon_id": 20969,
+       "scientific_name": "Upupa epops",
+       "common_name_fr": "Huppe fasciée",
+       "folder": "upupa_epops"
+     },
+     {
+       "taxon_id": 2969,
+       "scientific_name": "Streptopelia decaocto",
+       "common_name_fr": "Tourterelle turque",
+       "folder": "streptopelia_decaocto"
+     },
+     {
+       "taxon_id": 2938,
+       "scientific_name": "Streptopelia turtur",
+       "common_name_fr": "Tourterelle des bois",
+       "folder": "streptopelia_turtur"
+     },
+     {
+       "taxon_id": 4857,
+       "scientific_name": "Vanellus vanellus",
+       "common_name_fr": "Vanneau huppé",
+       "folder": "vanellus_vanellus"
+     },
+     {
+       "taxon_id": 3896,
+       "scientific_name": "Numenius arquata",
+       "common_name_fr": "Courlis cendré",
+       "folder": "numenius_arquata"
+     },
+     {
+       "taxon_id": 7045,
+       "scientific_name": "Aythya ferina",
+       "common_name_fr": "Fuligule milouin",
+       "folder": "aythya_ferina"
+     },
+     {
+       "taxon_id": 4504,
+       "scientific_name": "Fratercula arctica",
+       "common_name_fr": "Macareux moine",
+       "folder": "fratercula_arctica"
+     },
+     {
+       "taxon_id": 5361,
+       "scientific_name": "Neophron percnopterus",
+       "common_name_fr": "Vautour percnoptère",
+       "folder": "neophron_percnopterus"
+     },
+     {
+       "taxon_id": 7081,
+       "scientific_name": "Oxyura leucocephala",
+       "common_name_fr": "Érismature à tête blanche",
+       "folder": "oxyura_leucocephala"
+     }
+   ]

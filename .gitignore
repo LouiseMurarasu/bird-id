@@ -1,0 +1,14 @@
+   # Environnement virtuel
+   .venv/
+
+   # Cache Python
+   __pycache__/
+
+   # Images téléchargées
+   data/
+
+   # Modèles entraînés
+   models/
+
+   # Secrets (future clé API IUCN)
+   .env
