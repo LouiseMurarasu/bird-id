@@ -7,8 +7,8 @@ import requests
 
 API_URL = "https://api.inaturalist.org/v1"
 HEADERS = {"User-Agent": "bird-id-portfolio"}
-PHOTOS_PER_SPECIES = 5
-PER_PAGE = 3
+PHOTOS_PER_SPECIES = 400
+PER_PAGE = 200
 MAX_ATTEMPTS = 3
 
 
@@ -73,13 +73,16 @@ for species in species_list:
 
     for observation in observations:
         photo = observation["photos"][0]
-        url = photo["url"].replace("square", "medium")
-
-        image = get_with_retry(url)
-
         file_path = output_dir / f"{photo['id']}.jpg"
-        file_path.write_bytes(image.content)
-        print(f"Téléchargée : {file_path}")
+
+        if file_path.exists():
+            print(f"Déjà présente : {file_path}")
+        else:
+            url = photo["url"].replace("square", "medium")
+            image = get_with_retry(url)
+            file_path.write_bytes(image.content)
+            print(f"Téléchargée : {file_path}")
+            time.sleep(1)
 
         attributions.append({
             "folder": species["folder"],
@@ -88,8 +91,6 @@ for species in species_list:
             "attribution": photo["attribution"],
             "observation_url": f"https://www.inaturalist.org/observations/{observation['id']}",
         })
-
-        time.sleep(1)
 
 with open("data/raw/attributions.csv", "w", newline="", encoding="utf-8") as f:
     writer = csv.DictWriter(f, fieldnames=["folder", "photo_id", "license", "attribution", "observation_url"])
