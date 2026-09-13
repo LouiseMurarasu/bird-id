@@ -1,10 +1,19 @@
+import time
+
+import csv
+from pathlib import Path
 import torch
 from torch.utils.data import DataLoader
-from torchvision import datasets, transforms
+from torchvision import datasets, models, transforms
 
 TRAIN_DIR = "data/split/train"
 VAL_DIR = "data/split/val"
 BATCH_SIZE = 32
+NUM_CLASSES = 10
+LEARNING_RATE = 0.001
+EPOCHS = 10
+RESULTS_PATH = Path("results/training_log.csv")
+MODEL_PATH = Path("models/mobilenet_v3_small.pt")
 
 transform = transforms.Compose([
     transforms.Resize((224, 224)),
@@ -18,19 +27,6 @@ val_dataset = datasets.ImageFolder(VAL_DIR, transform=transform)
 train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
 val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=0)
 
-print(f"Batchs d'entraînement : {len(train_loader)}")
-print(f"Batchs de validation  : {len(val_loader)}")
-
-images, labels = next(iter(train_loader))
-print(f"\nForme d'un batch d'images : {tuple(images.shape)}")
-print(f"Forme des étiquettes      : {tuple(labels.shape)}")
-print(f"Étiquettes du batch       : {labels.tolist()}")
-
-from torchvision import models
-
-NUM_CLASSES = 10
-LEARNING_RATE = 0.001
-
 weights = models.MobileNet_V3_Small_Weights.DEFAULT
 model = models.mobilenet_v3_small(weights=weights)
 
@@ -43,10 +39,63 @@ model.classifier[3] = torch.nn.Linear(in_features, NUM_CLASSES)
 criterion = torch.nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.classifier[3].parameters(), lr=LEARNING_RATE)
 
-model.eval()
-with torch.no_grad():
-    outputs = model(images)
-    loss = criterion(outputs, labels)
+history = []
+for epoch in range(1, EPOCHS + 1):
+    start = time.time()
 
-print(f"\nForme des prédictions : {tuple(outputs.shape)}")
-print(f"Loss initiale : {loss.item():.4f}")
+    model.train()
+    train_loss = 0.0
+    train_correct = 0
+
+    for images, labels in train_loader:
+        optimizer.zero_grad()
+        outputs = model(images)
+        loss = criterion(outputs, labels)
+        loss.backward()
+        optimizer.step()
+
+        train_loss += loss.item() * labels.size(0)
+        train_correct += (outputs.argmax(dim=1) == labels).sum().item()
+
+        
+    model.eval()
+    val_loss = 0.0
+    val_correct = 0
+
+    with torch.no_grad():
+        for images, labels in val_loader:
+            outputs = model(images)
+            loss = criterion(outputs, labels)
+
+            val_loss += loss.item() * labels.size(0)
+            val_correct += (outputs.argmax(dim=1) == labels).sum().item()
+
+    train_loss /= len(train_dataset)
+    train_acc = train_correct / len(train_dataset)
+    val_loss /= len(val_dataset)
+    val_acc = val_correct / len(val_dataset)
+    duration = time.time() - start
+
+    print(f"Epoch {epoch}/{EPOCHS} ({duration:.0f}s)")
+    print(f"  train : loss {train_loss:.4f} / acc {train_acc:.2%}")
+    print(f"  val   : loss {val_loss:.4f} / acc {val_acc:.2%}")
+
+    history.append({
+        "epoch": epoch,
+        "train_loss": round(train_loss, 4),
+        "train_acc": round(train_acc, 4),
+        "val_loss": round(val_loss, 4),
+        "val_acc": round(val_acc, 4),
+        "duration_s": round(duration),
+    })
+
+RESULTS_PATH.parent.mkdir(parents=True, exist_ok=True)
+with open(RESULTS_PATH, "w", newline="", encoding="utf-8") as f:
+    writer = csv.DictWriter(f, fieldnames=list(history[0].keys()))
+    writer.writeheader()
+    writer.writerows(history)
+
+MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
+torch.save(model.state_dict(), MODEL_PATH)
+print(f"\nRésultats : {RESULTS_PATH}")
+print(f"Modèle    : {MODEL_PATH}")
