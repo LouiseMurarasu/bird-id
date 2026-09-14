@@ -1,4 +1,4 @@
-epoch,train_loss,train_acc,val_loss,val_acc,duration_s
+﻿epoch,train_loss,train_acc,val_loss,val_acc,duration_s
 1,1.5614,0.4653,1.0287,0.6713,21
 2,1.0879,0.6438,0.9403,0.705,22
 3,0.9628,0.6794,0.9191,0.6975,22

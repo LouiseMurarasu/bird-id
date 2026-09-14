@@ -7,10 +7,12 @@ from torch.utils.data import DataLoader
 from torchvision import datasets, models, transforms
 
 VAL_DIR = "data/split/val"
-MODEL_PATH = Path("models/mobilenet_v3_small.pt")
 BATCH_SIZE = 32
 NUM_CLASSES = 10
-MATRIX_PATH = Path("results/confusion_matrix.csv")
+EXPERIMENT_NAME = "augmentation"
+MODEL_PATH = Path("models") / f"{EXPERIMENT_NAME}.pt"
+MATRIX_PATH = Path("results") / EXPERIMENT_NAME / "confusion_matrix.csv"
+
 
 transform = transforms.Compose([
     transforms.Resize((224, 224)),

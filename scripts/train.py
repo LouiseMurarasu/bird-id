@@ -11,18 +11,29 @@ VAL_DIR = "data/split/val"
 BATCH_SIZE = 32
 NUM_CLASSES = 10
 LEARNING_RATE = 0.001
-EPOCHS = 10
-RESULTS_PATH = Path("results/training_log.csv")
-MODEL_PATH = Path("models/mobilenet_v3_small.pt")
+EPOCHS = 20
+EXPERIMENT_NAME = "augmentation"
+RESULTS_DIR = Path("results") / EXPERIMENT_NAME
+RESULTS_PATH = RESULTS_DIR / "training_log.csv"
+MODEL_PATH = Path("models") / f"{EXPERIMENT_NAME}.pt"
 
-transform = transforms.Compose([
+train_transform = transforms.Compose([
+    transforms.RandomResizedCrop(224, scale=(0.7, 1.0)),
+    transforms.RandomHorizontalFlip(),
+    transforms.RandomRotation(15),
+    transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+])
+
+val_transform = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
 ])
 
-train_dataset = datasets.ImageFolder(TRAIN_DIR, transform=transform)
-val_dataset = datasets.ImageFolder(VAL_DIR, transform=transform)
+train_dataset = datasets.ImageFolder(TRAIN_DIR, transform=train_transform)
+val_dataset = datasets.ImageFolder(VAL_DIR, transform=val_transform)
 
 train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
 val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=0)
