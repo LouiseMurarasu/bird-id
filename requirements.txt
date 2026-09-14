@@ -2,3 +2,4 @@ requests
 pillow
 torch
 torchvision
+matplotlib
