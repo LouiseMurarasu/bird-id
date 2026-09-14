@@ -11,8 +11,10 @@ VAL_DIR = "data/split/val"
 BATCH_SIZE = 32
 NUM_CLASSES = 10
 LEARNING_RATE = 0.001
-EPOCHS = 20
-EXPERIMENT_NAME = "augmentation"
+LEARNING_RATE_BACKBONE = 0.0001
+UNFREEZE_FROM = 10
+EPOCHS = 15
+EXPERIMENT_NAME = "unfreeze3"
 RESULTS_DIR = Path("results") / EXPERIMENT_NAME
 RESULTS_PATH = RESULTS_DIR / "training_log.csv"
 MODEL_PATH = Path("models") / f"{EXPERIMENT_NAME}.pt"
@@ -44,11 +46,23 @@ model = models.mobilenet_v3_small(weights=weights)
 for param in model.parameters():
     param.requires_grad = False
 
+backbone_params = []
+for block in model.features[UNFREEZE_FROM:]:
+    for param in block.parameters():
+        param.requires_grad = True
+        backbone_params.append(param)
+
 in_features = model.classifier[3].in_features
 model.classifier[3] = torch.nn.Linear(in_features, NUM_CLASSES)
 
 criterion = torch.nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(model.classifier[3].parameters(), lr=LEARNING_RATE)
+optimizer = torch.optim.Adam([
+    {"params": model.classifier[3].parameters(), "lr": LEARNING_RATE},
+    {"params": backbone_params, "lr": LEARNING_RATE_BACKBONE},
+])
+
+trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
+print(f"Paramètres entraînables : {trainable:,}\n")
 
 history = []
 for epoch in range(1, EPOCHS + 1):
