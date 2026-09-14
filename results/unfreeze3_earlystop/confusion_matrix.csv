@@ -1,0 +1,11 @@
+true_class,aythya_ferina,erithacus_rubecula,fratercula_arctica,neophron_percnopterus,numenius_arquata,oxyura_leucocephala,streptopelia_decaocto,streptopelia_turtur,upupa_epops,vanellus_vanellus
+aythya_ferina,62,0,3,1,1,9,2,0,0,2
+erithacus_rubecula,1,69,0,0,0,1,0,2,7,0
+fratercula_arctica,3,1,70,1,0,1,1,1,0,2
+neophron_percnopterus,0,1,2,67,0,0,3,1,4,2
+numenius_arquata,2,0,1,5,48,3,0,0,2,19
+oxyura_leucocephala,12,0,1,0,2,64,0,0,0,1
+streptopelia_decaocto,0,0,0,1,3,0,64,9,1,2
+streptopelia_turtur,0,1,2,0,2,0,7,61,6,1
+upupa_epops,0,5,2,3,1,0,3,4,59,3
+vanellus_vanellus,1,1,2,2,8,1,1,0,0,64

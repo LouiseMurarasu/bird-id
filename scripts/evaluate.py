@@ -9,7 +9,7 @@ from torchvision import datasets, models, transforms
 VAL_DIR = "data/split/val"
 BATCH_SIZE = 32
 NUM_CLASSES = 10
-EXPERIMENT_NAME = "unfreeze3"
+EXPERIMENT_NAME = "unfreeze3_earlystop"
 MODEL_PATH = Path("models") / f"{EXPERIMENT_NAME}.pt"
 MATRIX_PATH = Path("results") / EXPERIMENT_NAME / "confusion_matrix.csv"
 

@@ -13,11 +13,12 @@ NUM_CLASSES = 10
 LEARNING_RATE = 0.001
 LEARNING_RATE_BACKBONE = 0.0001
 UNFREEZE_FROM = 10
-EPOCHS = 15
-EXPERIMENT_NAME = "unfreeze3"
+EPOCHS = 30
+EXPERIMENT_NAME = "unfreeze3_earlystop"
 RESULTS_DIR = Path("results") / EXPERIMENT_NAME
 RESULTS_PATH = RESULTS_DIR / "training_log.csv"
 MODEL_PATH = Path("models") / f"{EXPERIMENT_NAME}.pt"
+PATIENCE = 5
 
 train_transform = transforms.Compose([
     transforms.RandomResizedCrop(224, scale=(0.7, 1.0)),
@@ -65,6 +66,9 @@ trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
 print(f"Paramètres entraînables : {trainable:,}\n")
 
 history = []
+best_val_loss = float("inf")
+epochs_without_improvement = 0
+MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
 for epoch in range(1, EPOCHS + 1):
     start = time.time()
 
@@ -114,13 +118,23 @@ for epoch in range(1, EPOCHS + 1):
         "duration_s": round(duration),
     })
 
+    if val_loss < best_val_loss:
+        best_val_loss = val_loss
+        epochs_without_improvement = 0
+        torch.save(model.state_dict(), MODEL_PATH)
+        print("  -> meilleur modèle sauvegardé")
+    else:
+        epochs_without_improvement += 1
+        print(f"  -> pas d'amélioration ({epochs_without_improvement}/{PATIENCE})")
+        if epochs_without_improvement >= PATIENCE:
+            print(f"\nArrêt anticipé à l'epoch {epoch}.")
+            break
+
 RESULTS_PATH.parent.mkdir(parents=True, exist_ok=True)
 with open(RESULTS_PATH, "w", newline="", encoding="utf-8") as f:
     writer = csv.DictWriter(f, fieldnames=list(history[0].keys()))
     writer.writeheader()
     writer.writerows(history)
 
-MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
-torch.save(model.state_dict(), MODEL_PATH)
 print(f"\nRésultats : {RESULTS_PATH}")
 print(f"Modèle    : {MODEL_PATH}")
