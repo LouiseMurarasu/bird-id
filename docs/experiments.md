@@ -87,3 +87,76 @@ pénalisent mutuellement.
 2. Dégeler les derniers blocs du réseau avec un learning rate réduit, pour
    affiner l'extraction de caractéristiques sur les paires difficiles
 3. Vérifier si le vautour est reconnu par l'oiseau ou par le fond
+
+
+---
+
+## Expérience 2 — Data augmentation
+
+Date : 2026-09-14
+
+### Réglages
+
+Identiques à l'expérience 1, sauf :
+
+| Paramètre | Valeur |
+|---|---|
+| Augmentation | RandomResizedCrop (0.7–1.0), HorizontalFlip, Rotation ±15°, ColorJitter ±20 % |
+| Epochs | 20 |
+| Durée | ~27 s puis ~40 s par epoch (CPU) |
+
+Justification détaillée des transformations dans `docs/data-augmentation.md`.
+
+### Résultats
+
+- Accuracy validation finale : **71,50 %** (baseline : 70,25 %)
+- Meilleure accuracy validation : 72,12 % (epoch 16)
+- Loss validation finale : **0,819** (baseline : 0,873)
+- Accuracy entraînement finale : 77,00 %
+
+| Espèce | Exp. 1 | Exp. 2 | Écart |
+|---|---|---|---|
+| streptopelia_turtur | 62,5 % | 73,8 % | +11,3 |
+| aythya_ferina | 63,7 % | 72,5 % | +8,8 |
+| streptopelia_decaocto | 68,8 % | 72,5 % | +3,7 |
+| oxyura_leucocephala | 71,2 % | 72,5 % | +1,3 |
+| erithacus_rubecula | 77,5 % | 78,8 % | +1,3 |
+| vanellus_vanellus | 71,2 % | 70,0 % | −1,2 |
+| numenius_arquata | 57,5 % | 56,2 % | −1,3 |
+| fratercula_arctica | 80,0 % | 77,5 % | −2,5 |
+| upupa_epops | 68,8 % | 65,0 % | −3,8 |
+| neophron_percnopterus | 81,2 % | 76,2 % | −5,0 |
+
+Erreurs croisées par paire :
+
+| Paire | Exp. 1 | Exp. 2 |
+|---|---|---|
+| aythya / oxyura | 34 | 28 |
+| numenius / vanellus | 28 | 30 |
+| turtur / decaocto | 21 | 17 |
+
+### Analyse
+
+**Gain global modeste, effets par espèce marqués.** Les deux paires visuellement
+proches (tourterelles, canards) progressent nettement. La paire liée à la distance
+de prise de vue (courlis / vanneau) ne bouge pas.
+
+**Le surapprentissage est contenu** : l'écart train/val passe de 6,4 à 5,5 points,
+et la loss de validation s'améliore.
+
+**Mais un nouveau plafond apparaît.** L'accuracy d'entraînement plafonne elle aussi
+à 77 %. Le modèle n'arrive pas à bien classer les images qu'il apprend : ce n'est
+plus un problème de mémorisation mais de **capacité**. Avec 10 250 paramètres
+entraînables et des caractéristiques figées issues d'ImageNet, la couche finale ne
+peut pas faire mieux.
+
+**Indice sur le biais du vautour.** Sa précision chute de 5 points alors que
+l'augmentation perturbe précisément son contexte (ciel uniforme). Cohérent avec
+l'hypothèse d'une reconnaissance du décor plutôt que de l'oiseau. À confirmer par
+Grad-CAM.
+
+### Décision
+
+Conserver l'augmentation et passer au dégel des derniers blocs du réseau
+(expérience 3), afin d'adapter l'extraction de caractéristiques aux espèces
+difficiles.
