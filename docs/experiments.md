@@ -160,3 +160,130 @@ Grad-CAM.
 Conserver l'augmentation et passer au dégel des derniers blocs du réseau
 (expérience 3), afin d'adapter l'extraction de caractéristiques aux espèces
 difficiles.
+
+
+---
+
+## Expérience 3 — Dégel des 3 derniers blocs
+
+Date : 2026-09-14
+
+### Réglages
+
+Identiques à l'expérience 2, sauf :
+
+| Paramètre | Valeur |
+|---|---|
+| Couches entraînées | couche finale + blocs 10–12 du backbone |
+| Paramètres entraînables | 654 890 (contre 10 250) |
+| Learning rate couche finale | 0,001 |
+| Learning rate blocs dégelés | 0,0001 |
+| Epochs | 15 |
+
+Détails et justification dans `docs/training-strategy.md`.
+
+### Résultats
+
+- Accuracy validation finale : **78,38 %** (exp. 2 : 71,50 %)
+- Meilleure accuracy validation : 79,25 %
+- Loss validation minimale : 0,646 (epoch 6)
+- Loss validation finale : 0,703
+- Accuracy entraînement finale : 91,19 %
+
+Erreurs croisées par paire :
+
+| Paire | Exp. 1 | Exp. 2 | Exp. 3 |
+|---|---|---|---|
+| aythya / oxyura | 34 | 28 | 21 |
+| turtur / decaocto | 21 | 17 | 14 |
+| numenius / vanellus | 28 | 30 | 26 |
+
+### Analyse
+
+**Le diagnostic de l'expérience 2 était correct.** Le blocage venait bien d'un
+manque de capacité : +7 points de validation dès qu'on autorise le réseau à
+adapter son extraction de caractéristiques.
+
+**Les paires visuellement proches profitent le plus du dégel.** Depuis la
+baseline, streptopelia_turtur gagne 18,7 points et aythya_ferina 16,3 points.
+Ce sont les distinctions fines qui nécessitaient des caractéristiques adaptées.
+
+**Courlis / Vanneau reste le point noir** (26 erreurs croisées). Le problème est
+la distance de prise de vue, pas la qualité des caractéristiques : aucun réglage
+d'entraînement ne fera apparaître une information absente des pixels.
+
+**Surapprentissage franc.** L'écart train/val atteint 12,8 points. La loss de
+validation atteint son minimum à l'epoch 6 puis remonte, alors que l'accuracy
+reste plate autour de 78-79 %. Le modèle sauvegardé (dernier) est donc moins bon
+que celui obtenu en cours de route.
+
+### Décision
+
+Corriger la stratégie de sauvegarde avant toute autre optimisation.
+
+---
+
+## Expérience 4 — Dégel + checkpointing + early stopping
+
+Date : 2026-09-14
+
+### Réglages
+
+Identiques à l'expérience 3, sauf :
+
+| Paramètre | Valeur |
+|---|---|
+| Sauvegarde | meilleure loss de validation (et non dernière epoch) |
+| Early stopping | patience = 5 epochs |
+| Epochs (plafond) | 30 |
+
+### Résultats
+
+- Arrêt anticipé à l'epoch 11
+- Modèle conservé : **epoch 6**
+- Loss validation du modèle conservé : **0,628**
+- Accuracy validation : **78,50 %**
+- Accuracy entraînement du modèle conservé : 83,00 %
+
+| Espèce | Précision |
+|---|---|
+| fratercula_arctica | 87,5 % |
+| erithacus_rubecula | 86,2 % |
+| neophron_percnopterus | 83,8 % |
+| oxyura_leucocephala | 80,0 % |
+| streptopelia_decaocto | 80,0 % |
+| vanellus_vanellus | 80,0 % |
+| aythya_ferina | 77,5 % |
+| streptopelia_turtur | 76,2 % |
+| upupa_epops | 73,8 % |
+| numenius_arquata | 60,0 % |
+
+### Analyse
+
+**Meilleur modèle pour moins de calcul.** 11 epochs au lieu de 15, loss de
+validation de 0,628 au lieu de 0,703, accuracy équivalente.
+
+**L'écart train/val passe de 12,8 à 4,5 points.** Un modèle qui généralise
+remplace un modèle qui avait commencé à mémoriser, à performance mesurée égale.
+
+**L'accuracy ne bouge que de 0,12 point.** C'est la démonstration pratique que
+l'accuracy seule ne suffit pas à piloter un entraînement : elle ne détecte pas la
+dégradation de la confiance, contrairement à la loss.
+
+**numenius_arquata reste le maillon faible** (60 %, 19 confusions vers
+vanellus_vanellus). Problème de données, pas de modèle.
+
+### Modèle de référence
+
+`models/unfreeze3_earlystop.pt` — 78,50 % de validation. C'est ce modèle qui sera
+utilisé dans l'application.
+
+### Pistes restantes
+
+1. Grad-CAM pour vérifier sur quoi le modèle se base (notamment
+   neophron_percnopterus, soupçonné d'utiliser le fond de ciel)
+2. Dégeler davantage de blocs (7–12), en surveillant le surapprentissage
+3. Télécharger davantage d'images pour numenius_arquata et vanellus_vanellus,
+   ou filtrer les photos les plus lointaines
+4. Seuil de confiance : le modèle répond toujours l'une des 10 espèces, même pour
+   une photo sans oiseau
