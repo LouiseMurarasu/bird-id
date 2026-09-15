@@ -1,0 +1,37 @@
+{
+  "LC": {
+    "label": "Préoccupation mineure",
+    "color": "#4CAF50",
+    "description": "L'espèce est répandue et abondante. Elle ne fait pas l'objet de mesures de conservation spécifiques."
+  },
+  "NT": {
+    "label": "Quasi menacée",
+    "color": "#CDDC39",
+    "description": "L'espèce est proche des seuils de menace, ou pourrait les atteindre prochainement. Une surveillance est nécessaire."
+  },
+  "VU": {
+    "label": "Vulnérable",
+    "color": "#FFC107",
+    "description": "L'espèce fait face à un risque élevé d'extinction à l'état sauvage."
+  },
+  "EN": {
+    "label": "En danger",
+    "color": "#FF9800",
+    "description": "L'espèce fait face à un risque très élevé d'extinction à l'état sauvage."
+  },
+  "CR": {
+    "label": "En danger critique",
+    "color": "#F44336",
+    "description": "L'espèce fait face à un risque extrêmement élevé d'extinction à l'état sauvage."
+  },
+  "EW": {
+    "label": "Éteinte à l'état sauvage",
+    "color": "#7B1FA2",
+    "description": "L'espèce ne survit qu'en captivité ou dans des populations réintroduites."
+  },
+  "EX": {
+    "label": "Éteinte",
+    "color": "#000000",
+    "description": "Aucun individu ne subsiste."
+  }
+}

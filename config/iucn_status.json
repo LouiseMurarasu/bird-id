@@ -1,0 +1,59 @@
+{
+  "_source": {
+        "citation": "IUCN 2026. IUCN Red List of Threatened Species. Version 2026-1. www.iucnredlist.org",
+    "consulted": "2026-09-15",
+    "method": "Relevé manuel depuis iucnredlist.org"
+  },
+  "species": {
+    "Erithacus rubecula": {
+      "category": "LC",
+      "assessed": 2018,
+      "trend": "increasing"
+    },
+    "Upupa epops": {
+      "category": "LC",
+      "assessed": 2020,
+      "trend": "decreasing"
+    },
+    "Streptopelia decaocto": {
+      "category": "LC",
+      "assessed": 2019,
+      "trend": "increasing"
+    },
+    "Streptopelia turtur": {
+      "category": "VU",
+      "assessed": 2019,
+      "trend": "decreasing"
+    },
+    "Vanellus vanellus": {
+      "category": "NT",
+      "assessed": 2025,
+      "trend": "decreasing"
+    },
+    "Numenius arquata": {
+      "category": "NT",
+      "assessed": 2017,
+      "trend": "decreasing"
+    },
+    "Aythya ferina": {
+      "category": "VU",
+      "assessed": 2021,
+      "trend": "decreasing"
+    },
+    "Fratercula arctica": {
+      "category": "VU",
+      "assessed": 2018,
+      "trend": "decreasing"
+    },
+    "Neophron percnopterus": {
+      "category": "EN",
+      "assessed": 2021,
+      "trend": "decreasing"
+    },
+    "Oxyura leucocephala": {
+      "category": "EN",
+      "assessed": 2017,
+      "trend": "decreasing"
+    }
+  }
+}

@@ -26,6 +26,9 @@ def get_species():
 def get_class_names():
     return birdid.class_names()
 
+@st.cache_data
+def get_iucn(scientific_name):
+    return birdid.iucn_for(scientific_name)
 
 model = get_model()
 species_by_folder = get_species()
@@ -70,13 +73,36 @@ if uploaded_file is not None:
             f"**{best_species['common_name_fr']}** — *{best_species['scientific_name']}*  \n"
             f"Confiance : {best_probability:.1%}"
         )
+
+        status = get_iucn(best_species["scientific_name"])
+        if status is not None:
+            trend_labels = {
+                "increasing": "en augmentation",
+                "stable": "stable",
+                "decreasing": "en déclin",
+            }
+            trend = trend_labels.get(status["trend"], status["trend"])
+
+            st.subheader("Statut de conservation")
+            st.markdown(
+                f"<div style='background-color:{status['color']}; color:white; "
+                f"padding:0.6rem 1rem; border-radius:0.4rem; font-weight:600; "
+                f"display:inline-block;'>{status['category']} — {status['label']}</div>",
+                unsafe_allow_html=True,
+            )
+            st.write("")
+            st.write(status["description"])
+            st.caption(
+                f"Population {trend} · Évaluation {status['assessed']} · "
+                f"Source : IUCN Red List (version 2026-1, périmètre mondial)"
+            )
     else:
         st.warning(
             f"Confiance insuffisante ({best_probability:.1%}) pour affirmer une identification. "
             "L'oiseau est peut-être trop loin ou trop peu visible. "
             "Essaie une photo plus rapprochée ou mieux cadrée."
         )
-
+    
     st.subheader(f"{TOP_K} espèces les plus probables")
     for rank, (probability, index) in enumerate(zip(top_probs.tolist(), top_indices.tolist()), start=1):
         folder = class_names[index]

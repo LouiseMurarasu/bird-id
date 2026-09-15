@@ -7,6 +7,8 @@ import torch
 from torchvision import models, transforms
 
 SPECIES_PATH = Path("config/species.json")
+IUCN_STATUS_PATH = Path("config/iucn_status.json")
+IUCN_CATEGORIES_PATH = Path("config/iucn_categories.json")
 MODELS_DIR = Path("models")
 NUM_CLASSES = 10
 IMAGE_SIZE = 224
@@ -54,3 +56,30 @@ def load_model(experiment_name):
     model.load_state_dict(torch.load(weights_path, map_location="cpu"))
     model.eval()
     return model
+
+def load_iucn_status():
+    """Retourne les statuts UICN indexés par nom scientifique."""
+    with open(IUCN_STATUS_PATH, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def load_iucn_categories():
+    """Retourne les libellés et descriptions des catégories UICN."""
+    with open(IUCN_CATEGORIES_PATH, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def iucn_for(scientific_name):
+    """Retourne le statut UICN complet d'une espèce, ou None si absent.
+
+    Le dictionnaire retourné combine le statut de l'espèce (category,
+    assessed, trend) et la description de sa catégorie (label, color,
+    description).
+    """
+    data = load_iucn_status()
+    entry = data["species"].get(scientific_name)
+    if entry is None:
+        return None
+    categories = load_iucn_categories()
+    category = categories.get(entry["category"], {})
+    return {**entry, **category}
