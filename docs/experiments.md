@@ -244,6 +244,8 @@ Identiques à l'expérience 3, sauf :
 - Loss validation du modèle conservé : **0,628**
 - Accuracy validation : **78,50 %**
 - Accuracy entraînement du modèle conservé : 83,00 %
+- Accuracy validation top-3 : **94,25 %**
+- Accuracy validation avec seuil de confiance 0,70 : **91,3 %** (sur 69 % des images)
 
 | Espèce | Précision |
 |---|---|
