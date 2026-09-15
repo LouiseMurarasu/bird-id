@@ -1,6 +1,5 @@
+import csv
 from pathlib import Path
-
-import csv 
 
 import torch
 from torch.utils.data import DataLoader
@@ -12,7 +11,6 @@ NUM_CLASSES = 10
 EXPERIMENT_NAME = "unfreeze3_earlystop"
 MODEL_PATH = Path("models") / f"{EXPERIMENT_NAME}.pt"
 MATRIX_PATH = Path("results") / EXPERIMENT_NAME / "confusion_matrix.csv"
-
 
 transform = transforms.Compose([
     transforms.Resize((224, 224)),
@@ -31,12 +29,19 @@ model.load_state_dict(torch.load(MODEL_PATH))
 model.eval()
 
 matrix = torch.zeros(NUM_CLASSES, NUM_CLASSES, dtype=torch.int32)
+top3_correct = 0
+top3_total = 0
 
 with torch.no_grad():
     for images, labels in val_loader:
-        predictions = model(images).argmax(dim=1)
+        outputs = model(images)
+        predictions = outputs.argmax(dim=1)
         for true_label, predicted_label in zip(labels, predictions):
             matrix[true_label][predicted_label] += 1
+
+        top3 = outputs.topk(3, dim=1).indices
+        top3_correct += (top3 == labels.unsqueeze(1)).any(dim=1).sum().item()
+        top3_total += labels.size(0)
 
 print("Matrice de confusion (lignes = vraie espèce, colonnes = prédiction)\n")
 header = "".join(f"{i:>6}" for i in range(NUM_CLASSES))
@@ -48,11 +53,12 @@ for i, name in enumerate(classes):
 print("\nPrécision par espèce :")
 for i, name in enumerate(classes):
     correct = matrix[i][i].item()
-    total = matrix[i].sum().item()
-    print(f"  {name:<24} {correct:>3}/{total:<3}  {correct / total:.1%}")
+    species_total = matrix[i].sum().item()
+    print(f"  {name:<24} {correct:>3}/{species_total:<3}  {correct / species_total:.1%}")
 
 overall = matrix.diagonal().sum().item() / matrix.sum().item()
 print(f"\nPrécision globale : {overall:.2%}")
+print(f"Précision top-3   : {top3_correct / top3_total:.2%}")
 
 MATRIX_PATH.parent.mkdir(parents=True, exist_ok=True)
 with open(MATRIX_PATH, "w", newline="", encoding="utf-8") as f:
