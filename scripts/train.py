@@ -1,60 +1,57 @@
-import time
-
 import csv
+import sys
+import time
 from pathlib import Path
+
+sys.path.insert(0, ".")
+
 import torch
 from torch.utils.data import DataLoader
-from torchvision import datasets, models, transforms
+from torchvision import datasets, transforms
+
+import birdid
 
 TRAIN_DIR = "data/split/train"
 VAL_DIR = "data/split/val"
 BATCH_SIZE = 32
-NUM_CLASSES = 10
 LEARNING_RATE = 0.001
 LEARNING_RATE_BACKBONE = 0.0001
 UNFREEZE_FROM = 10
 EPOCHS = 30
+PATIENCE = 5
 EXPERIMENT_NAME = "unfreeze3_earlystop"
 RESULTS_DIR = Path("results") / EXPERIMENT_NAME
 RESULTS_PATH = RESULTS_DIR / "training_log.csv"
 MODEL_PATH = Path("models") / f"{EXPERIMENT_NAME}.pt"
-PATIENCE = 5
 
 train_transform = transforms.Compose([
-    transforms.RandomResizedCrop(224, scale=(0.7, 1.0)),
+    transforms.RandomResizedCrop(birdid.IMAGE_SIZE, scale=(0.7, 1.0)),
     transforms.RandomHorizontalFlip(),
     transforms.RandomRotation(15),
     transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),
     transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-])
-
-val_transform = transforms.Compose([
-    transforms.Resize((224, 224)),
-    transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    transforms.Normalize(mean=birdid.IMAGENET_MEAN, std=birdid.IMAGENET_STD),
 ])
 
 train_dataset = datasets.ImageFolder(TRAIN_DIR, transform=train_transform)
-val_dataset = datasets.ImageFolder(VAL_DIR, transform=val_transform)
+val_dataset = datasets.ImageFolder(VAL_DIR, transform=birdid.inference_transform)
 
 train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
 val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=0)
 
-weights = models.MobileNet_V3_Small_Weights.DEFAULT
-model = models.mobilenet_v3_small(weights=weights)
+model = birdid.build_model(pretrained=True)
 
 for param in model.parameters():
     param.requires_grad = False
 
+for param in model.classifier[3].parameters():
+    param.requires_grad = True
+    
 backbone_params = []
 for block in model.features[UNFREEZE_FROM:]:
     for param in block.parameters():
         param.requires_grad = True
         backbone_params.append(param)
-
-in_features = model.classifier[3].in_features
-model.classifier[3] = torch.nn.Linear(in_features, NUM_CLASSES)
 
 criterion = torch.nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam([
@@ -69,6 +66,7 @@ history = []
 best_val_loss = float("inf")
 epochs_without_improvement = 0
 MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
+
 for epoch in range(1, EPOCHS + 1):
     start = time.time()
 
@@ -86,7 +84,6 @@ for epoch in range(1, EPOCHS + 1):
         train_loss += loss.item() * labels.size(0)
         train_correct += (outputs.argmax(dim=1) == labels).sum().item()
 
-        
     model.eval()
     val_loss = 0.0
     val_correct = 0

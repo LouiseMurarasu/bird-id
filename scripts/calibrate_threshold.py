@@ -1,30 +1,22 @@
-from pathlib import Path
+import sys
+
+sys.path.insert(0, ".")
 
 import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
-from torchvision import datasets, models, transforms
+from torchvision import datasets
 
-EXPERIMENT_NAME = "unfreeze3_earlystop"
-MODEL_PATH = Path("models") / f"{EXPERIMENT_NAME}.pt"
+import birdid
+
 VAL_DIR = "data/split/val"
 BATCH_SIZE = 32
-NUM_CLASSES = 10
+EXPERIMENT_NAME = "unfreeze3_earlystop"
 
-transform = transforms.Compose([
-    transforms.Resize((224, 224)),
-    transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-])
-
-val_dataset = datasets.ImageFolder(VAL_DIR, transform=transform)
+val_dataset = datasets.ImageFolder(VAL_DIR, transform=birdid.inference_transform)
 val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=0)
 
-model = models.mobilenet_v3_small()
-in_features = model.classifier[3].in_features
-model.classifier[3] = torch.nn.Linear(in_features, NUM_CLASSES)
-model.load_state_dict(torch.load(MODEL_PATH))
-model.eval()
+model = birdid.load_model(EXPERIMENT_NAME)
 
 confidences = []
 correctness = []

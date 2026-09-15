@@ -1,32 +1,22 @@
 import sys
 from pathlib import Path
 
+sys.path.insert(0, ".")
+
 import matplotlib.pyplot as plt
-import numpy as np
 import torch
 import torch.nn.functional as F
 from PIL import Image
-from torchvision import models, transforms
+
+import birdid
 
 EXPERIMENT_NAME = "unfreeze3_earlystop"
-MODEL_PATH = Path("models") / f"{EXPERIMENT_NAME}.pt"
-VAL_DIR = Path("data/split/val")
 OUTPUT_DIR = Path("results") / EXPERIMENT_NAME / "gradcam"
-NUM_CLASSES = 10
 
-CLASSES = sorted(p.name for p in VAL_DIR.iterdir() if p.is_dir())
+CLASSES = birdid.class_names()
+transform = birdid.inference_transform
 
-transform = transforms.Compose([
-    transforms.Resize((224, 224)),
-    transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-])
-
-model = models.mobilenet_v3_small()
-in_features = model.classifier[3].in_features
-model.classifier[3] = torch.nn.Linear(in_features, NUM_CLASSES)
-model.load_state_dict(torch.load(MODEL_PATH))
-model.eval()
+model = birdid.load_model(EXPERIMENT_NAME)
 
 target_layer = model.features[-1]
 activations = {}
