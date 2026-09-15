@@ -6,6 +6,8 @@ from pathlib import Path
 import torch
 from torchvision import models, transforms
 
+import torch.nn.functional as F
+
 SPECIES_PATH = Path("config/species.json")
 IUCN_STATUS_PATH = Path("config/iucn_status.json")
 IUCN_CATEGORIES_PATH = Path("config/iucn_categories.json")
@@ -83,3 +85,39 @@ def iucn_for(scientific_name):
     categories = load_iucn_categories()
     category = categories.get(entry["category"], {})
     return {**entry, **category}
+
+def gradcam(model, tensor, class_index):
+    """Calcule la carte Grad-CAM d'une image pour une classe donnée.
+
+    model : modèle MobileNetV3-Small
+    tensor : image préparée, de forme (1, 3, 224, 224)
+    class_index : numéro de la classe à expliquer
+
+    Retourne un tableau 2D de valeurs entre 0 et 1.
+    """
+    target_layer = model.features[-1]
+    activations = {}
+    gradients = {}
+
+    def forward_hook(module, inputs, output):
+        activations["value"] = output
+
+    def backward_hook(module, grad_input, grad_output):
+        gradients["value"] = grad_output[0]
+
+    forward_handle = target_layer.register_forward_hook(forward_hook)
+    backward_handle = target_layer.register_full_backward_hook(backward_hook)
+
+    try:
+        outputs = model(tensor)
+        model.zero_grad()
+        outputs[0, class_index].backward()
+
+        weights = gradients["value"].mean(dim=(2, 3), keepdim=True)
+        cam = (weights * activations["value"]).sum(dim=1).squeeze()
+        cam = F.relu(cam)
+        cam = cam / (cam.max() + 1e-8)
+        return cam.detach().numpy()
+    finally:
+        forward_handle.remove()
+        backward_handle.remove()
