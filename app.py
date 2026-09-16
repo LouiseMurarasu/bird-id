@@ -166,6 +166,14 @@ if uploaded_file is not None:
             "Essaie une photo plus rapprochée ou mieux cadrée."
         )
 
+    st.info(
+        "Le modèle se trompe dans environ 1 cas sur 10 au-dessus du seuil de confiance, "
+        "parfois avec une confiance élevée. Les silhouettes en vol et les oiseaux "
+        "photographiés de loin sont les cas les plus difficiles. "
+        "Vérifiez auprès d'une source ornithologique avant toute conclusion, "
+        "en particulier sur le statut de conservation."
+    )
+        
     st.subheader(f"{TOP_K} espèces les plus probables")
     for rank, (probability, index) in enumerate(zip(top_probs.tolist(), top_indices.tolist()), start=1):
         folder = class_names[index]
