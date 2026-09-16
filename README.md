@@ -1,5 +1,7 @@
 # 🐦 Bird ID
 
+**[→ Tester l'application en ligne] (https://birdid-louisemurarasu.streamlit.app/)**
+
 Application qui identifie 10 espèces d'oiseaux européens à partir d'une photo,
 affiche leur statut de conservation UICN, et montre sur quoi le modèle s'est basé
 pour décider.
