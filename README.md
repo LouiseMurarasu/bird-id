@@ -101,7 +101,7 @@ végétation environnante. La prédiction peut être correcte pour une mauvaise 
 ## Installation
 
 ```bash
-git clone <url-du-depot>
+git clone https://github.com/LouiseMurarasu/bird-id.git
 cd bird-id
 python -m venv .venv
 .venv\Scripts\Activate.ps1        # Windows
