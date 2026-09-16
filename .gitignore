@@ -11,7 +11,8 @@ data/
 results/*/gradcam/
 
 # Modèles entraînés
-models/
+models/*
+!models/unfreeze3_earlystop.pt
 
 # Secrets (future clé API IUCN)
 .env
